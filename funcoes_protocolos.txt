@@ -1,0 +1,24 @@
+functions of class
+
+todos
+
+decript_rsa
+encript_rsa
+make_header
+make_packet
+send_packet
+generate_mac
+compare_mac
+
+servidor
+
+verify_client_autentication
+generate_keys
+connect_to_client
+
+
+client
+
+verify_server_autentication
+connect_to_server
+generate_mac_key
