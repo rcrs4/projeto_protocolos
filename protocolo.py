@@ -149,4 +149,9 @@ class Client(Protocolo):
     def make_handshake(self):
         msg = "HELLO"
         self.send_msg(msg+self.mac_key.decode(), "H")
-        print(self.recv_packet())
+        if(self.recv_packet() != "HELLO"):
+            self.close_connection()
+            
+    def close_connection(self):
+        self.connection.close()
+
