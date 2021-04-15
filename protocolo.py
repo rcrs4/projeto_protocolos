@@ -6,6 +6,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA384
 import binascii
+from getmac import get_mac_address as gma
 
 class Protocolo:
     def __init__(self):
@@ -153,7 +154,7 @@ class Server(Protocolo):
         hashs = [packet[-16:]]
         while len_recv < msg_len:
             msg = client_socket.recv(4096)
-            mag = self.decrypt_rsa(msg)
+            msg = self.decrypt_rsa(msg)
             len_recv += len(msg[:-16])
             msg_recv.append(msg[:-16])
             hashs.append(msg[-16:])
@@ -170,7 +171,7 @@ class Client(Protocolo):
     def __init__(self):
         super().__init__()
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.mac_key = None
+        self.mac_key = gma().encode()
 
     def verify_server_authentication(self, msg, hash_msg):
         return self.verify_msg(hash_msg, msg)
