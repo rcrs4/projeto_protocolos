@@ -189,11 +189,6 @@ class Client(Protocolo):
             addrs = self.host
         self.connection.connect((addrs, port))
     
-    def generate_mac_key(self):
-        mac_key = uuid.uuid1()
-        self.mac_key = str(mac_key).encode()
-        return mac_key
-    
     def send_packet(self, packet):
         mac = self.generate_mac(packet, self.mac_key)
         msg = self.encrypt_rsa(packet+mac)
