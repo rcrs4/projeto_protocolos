@@ -86,7 +86,7 @@ class Server(Protocolo):
         self.connection.bind((address, port))
         self.connection.listen(5)
         self.client_mac_key = None
-        self.func_options = {ord("H"):self.hello_case, ord("F"):self.fetch_case, ord("C"):self.create_case}
+        self.func_options = {ord("H"):self.hello_case, ord("F"):self.fetch_case, ord("C"):self.create_case, ord("V"):self.create_case}
         self.client_socket = None
 
     def verify_client_authentication(self, msg, hash):
@@ -140,11 +140,19 @@ class Server(Protocolo):
                 self.close_connection()
                 return False
 
+    def vote_case(self, msgs, hashs):
+        for msg, hash in zip(msgs, hashs):
+            if(self.verify_client_authentication(msg, hash) == False):
+                self.close_connection()
+                return False
+
     def recv_packet(self, client_socket=None):
         if(client_socket == None):
             client_socket = self.client_socket
         packet = client_socket.recv(4096)
         packet = self.decrypt_rsa(packet)
+        
+        
         header = packet[:3]
         msg_len = int.from_bytes(header[1:3], 'big')
         msg_type = header[0]
