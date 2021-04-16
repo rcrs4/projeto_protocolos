@@ -1,5 +1,4 @@
 import socket
-import uuid
 import hashlib
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -182,8 +181,7 @@ class Client(Protocolo):
         self.connection.connect((addrs, port))
     
     def generate_mac_key(self):
-        mac_key = uuid.uuid1()
-        self.mac_key = str(mac_key).encode()
+        self.mac_key = gma().encode()
         return mac_key
     
     def send_packet(self, packet):
