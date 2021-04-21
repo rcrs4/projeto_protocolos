@@ -132,6 +132,7 @@ class Server(Protocolo):
     def fetch_case(self, msgs, hashs):
         for msg, hash in zip(msgs, hashs):
             if(self.verify_client_authentication(msg, hash) == False):
+                self.send_msg("ERR", "F", self.client_socket)
                 self.close_connection()
                 return False
         
@@ -139,16 +140,17 @@ class Server(Protocolo):
         msg = msg.decode()
 
         if msg == "":
-            self.send_msg(str(self.eleicoes.keys()), "F", self.client_socket)
+            self.send_msg(str(' '.join(self.eleicoes.keys())), "F", self.client_socket)
+            return True
         elif msg in self.eleicoes.keys():
             if(self.eleicoes[msg]['vencedor'] != ''):
                 self.send_msg("vencedor " + str(self.eleicoes[msg]['vencedor']), "F", self.client_socket)
                 return True
-            self.send_msg(str(self.eleicoes[msg]['opcoes'].keys()), "F", self.client_socket)
+            self.send_msg(str(' '.join(self.eleicoes[msg]['opcoes'].keys())), "F", self.client_socket)
             return True
         else:
+            self.send_msg("ERR", "F", self.client_socket)
             return False
-        return True
 
     def create_case(self, msgs, hashs):
         for msg, hash in zip(msgs, hashs):
@@ -190,6 +192,8 @@ class Server(Protocolo):
         if(client_socket == None):
             client_socket = self.client_socket
         packet = client_socket.recv(4096)
+        if packet == b'':
+            return False
         packet = self.decrypt_rsa(packet)
         
         
