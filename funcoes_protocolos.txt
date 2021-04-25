@@ -21,4 +21,3 @@ client
 
 verify_server_autentication
 connect_to_server
-generate_mac_key
