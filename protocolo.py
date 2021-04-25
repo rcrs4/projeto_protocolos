@@ -1,5 +1,4 @@
 import socket
-import uuid
 import hashlib
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -87,8 +86,9 @@ class Server(Protocolo):
         self.connection.bind((address, port))
         self.connection.listen(5)
         self.client_mac_key = None
-        self.func_options = {ord("H"):self.hello_case, ord("F"):self.fetch_case, ord("C"):self.create_case, ord("V"):self.create_case}
+        self.func_options = {ord("H"):self.hello_case, ord("F"):self.fetch_case, ord("C"):self.create_case, ord("V"):self.vote_case}
         self.client_socket = None
+        self.eleicoes = {}
 
     def verify_client_authentication(self, msg, hash):
         return self.compare_mac(msg, self.client_mac_key, hash)
@@ -132,25 +132,68 @@ class Server(Protocolo):
     def fetch_case(self, msgs, hashs):
         for msg, hash in zip(msgs, hashs):
             if(self.verify_client_authentication(msg, hash) == False):
+                self.send_msg("ERR", "F", self.client_socket)
                 self.close_connection()
                 return False
+        
+        msg = msgs[0][3:]
+        msg = msg.decode()
+
+        if msg == "":
+            self.send_msg(str(' '.join(self.eleicoes.keys())), "F", self.client_socket)
+            return True
+        elif msg in self.eleicoes.keys():
+            if(self.eleicoes[msg]['vencedor'] != ''):
+                self.send_msg("vencedor " + str(self.eleicoes[msg]['vencedor']), "F", self.client_socket)
+                return True
+            self.send_msg(str(' '.join(self.eleicoes[msg]['opcoes'].keys())), "F", self.client_socket)
+            return True
+        else:
+            self.send_msg("ERR", "F", self.client_socket)
+            return False
 
     def create_case(self, msgs, hashs):
         for msg, hash in zip(msgs, hashs):
             if(self.verify_client_authentication(msg, hash) == False):
+                self.send_msg("ERR", "C", self.client_socket)
                 self.close_connection()
                 return False
+        new_votacao = msgs[0][3:].split()
+        if(len(new_votacao) >= 3 and new_votacao[0].decode() not in self.eleicoes.keys()):
+            self.eleicoes[new_votacao[0].decode()] = {'max_voto':new_votacao[1].decode(), 
+                                                      'opcoes': {},
+                                                      'vencedor': ''}
+            for opcao in new_votacao[2:]:
+                opcao = opcao.decode()
+                self.eleicoes[new_votacao[0].decode()]['opcoes'][opcao] = 0
+            self.send_msg("OK", "C", self.client_socket)
+            return True
+        
+        self.send_msg("ERR", "C", self.client_socket)
+        return False
 
     def vote_case(self, msgs, hashs):
         for msg, hash in zip(msgs, hashs):
             if(self.verify_client_authentication(msg, hash) == False):
                 self.close_connection()
                 return False
+        vote = msgs[0][3:].split()
+        if(vote[0].decode() in self.eleicoes.keys() and self.eleicoes[vote[0].decode()]['vencedor'] == '' and vote[1].decode() in self.eleicoes[vote[0].decode()]['opcoes'].keys()):
+            self.eleicoes[vote[0].decode()]['opcoes'][vote[1].decode()] += 1
+            if(self.eleicoes[vote[0].decode()]['opcoes'][vote[1].decode()] >= int(self.eleicoes[vote[0].decode()]['max_voto'])):
+                self.eleicoes[vote[0].decode()]['vencedor'] = vote[1].decode()
+            self.send_msg("OK", "V", self.client_socket)
+            return True
+        else:
+            self.send_msg("ERR", "V", self.client_socket)
+            return False
 
     def recv_packet(self, client_socket=None):
         if(client_socket == None):
             client_socket = self.client_socket
         packet = client_socket.recv(4096)
+        if packet == b'':
+            return False
         packet = self.decrypt_rsa(packet)
         
         
@@ -179,7 +222,7 @@ class Client(Protocolo):
     def __init__(self):
         super().__init__()
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.mac_key = gma().encode()
+        self.mac_key = '1234'.encode()
 
     def verify_server_authentication(self, msg, hash_msg):
         return self.verify_msg(hash_msg, msg)
@@ -190,8 +233,7 @@ class Client(Protocolo):
         self.connection.connect((addrs, port))
     
     def generate_mac_key(self):
-        mac_key = uuid.uuid1()
-        self.mac_key = str(mac_key).encode()
+        self.mac_key = gma().encode()
         return mac_key
     
     def send_packet(self, packet):
