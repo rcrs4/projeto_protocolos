@@ -25,7 +25,7 @@ def pegases(lista):
     retorno = tiraespaco(input())
     tem = lista.count(retorno)
     while(tem==0):
-        retorno = tiraespaco(input("essa sessao nao existe, digite um nome valido\n"))
+        retorno = tiraespaco(input("essa sessao/opcao nao existe, digite um nome valido\n"))
         tem = lista.count(retorno)
     return retorno
 
