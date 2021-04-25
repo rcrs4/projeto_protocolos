@@ -1,9 +1,3 @@
-Multi-line comments are here!
-
-You can now comment on multiple lines. Just click and drag on the  button.
-
-Demonstrating selecting multiple lines for commenting
-
 # Protocolo
 
 Aqui temos a implementação do nosso protocolo.
@@ -55,7 +49,7 @@ server.recv_packet()
    * `make_handshake()`         
       faz o handshake com o servidor para autenticação           
    * `connection.close()`         
-      fecha a conexão do cliente  
+      fecha a conexão do cliente          
       
 ## Autenticação
    A autenticação do servidor é feito pela assinatura no uso da função `sign_msg`, toda vez que o servidor enviar mensagens, e é verificada no cliente com a função `verify_msg` toda vez que é chamada a função `recv_packet` para receber pacotes.
@@ -66,5 +60,4 @@ server.recv_packet()
 ## Confidencialidade
 
    A confidencialidade dos dados se da pela encriptação dos dados enviados pelo cliente para o servidor graças às funções `encrypt_rsa`, que é chamada quando o cliente vai enviar uma mensagem e é decriptada pela função  `decrypt_rsa` sempre que o servidor receber mensagens.
-
 
