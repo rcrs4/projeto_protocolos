@@ -5,8 +5,29 @@ def tiraespaco(string):
     aux = string.replace(" ", "_")
     return aux
 
+def peganum():
+    a = input()
+    while(not a.isnumeric()):
+        a = input("entrada invalida, digite um numero:\n")
+    return a
 
+def peganome():
+    a = tiraespaco(input("digite um titulo para a sessao\n"))
+    client.send_msg("", "F")
+    nomes = client.recv_packet().split()
+    tem = nomes.count(a)
+    while(tem>0):
+        a = tiraespaco(input("ja existe uma sessao com esse nome, digite outro\n"))
+        tem = nomes.count(a)
+    return a
 
+def pegases(lista):
+    retorno = tiraespaco(input())
+    tem = lista.count(retorno)
+    while(tem==0):
+        retorno = tiraespaco(input("essa sessao nao existe, digite um nome valido\n"))
+        tem = lista.count(retorno)
+    return retorno
 
 client = protocolo.Client()
 client.connect_to_server(addrs=socket.gethostname(), port=1234)
@@ -16,10 +37,12 @@ op = input("digite 1 para criar uma sessao de votacao\n2 para votar em uma sessa
 while(op != '0'):
     
     if(op == '1'):
-        tit = tiraespaco(input("digite um titulo para a sessao\n"))
-        print(tit)
-        quant = int(input("quantas opcoes a sessao tera?\n"))
-        total = input("qual a quantidade de votos para a reuniao acabar?\n")
+        tit = peganome()
+        # print(tit)
+        print("quantas opcoes a sessao tera?")
+        quant = int(peganum())
+        print("qual a quantidade de votos necessario para a vitoria?")
+        total = peganum()
         opcoes = ""
         i=0
         quanto =int(quant)
@@ -42,12 +65,17 @@ while(op != '0'):
         # print(client.recv_packet())
 
     elif(op == '2'):
-        print("sessoes existentes:")
+        print("sessoes em andamento:")
         client.send_msg("", "F")
         ses = client.recv_packet().split()
         for j in range(len(ses)):
-            print(ses[j])
-        sessao = input("em qual sessao voce deseja votar?\n")
+            client.send_msg(ses[j],"F")
+            ress = client.recv_packet()
+            if(ress[0:9] != "vencedor "):
+                print(ses[j])
+        # sessao = input("em qual sessao voce deseja votar?\n")
+        print("em qual sessao voce deseja votar?")
+        sessao = pegases(ses)
         client.send_msg(sessao, "F")
         opcoes = client.recv_packet()
         if(opcoes[0:9] == "vencedor "):
@@ -57,7 +85,9 @@ while(op != '0'):
             print("suas opcoes sao:")
             for opc in range(len(op)):
                 print(op[opc])
-            voto = input("qual sera seu voto?\n")
+            # voto = input("qual sera seu voto?\n")
+            print("qual sera seu voto?")
+            voto = pegases(op)
             mensagem = sessao + " " + voto
             # print(mensagem)
             client.send_msg(mensagem, "V")
@@ -68,17 +98,23 @@ while(op != '0'):
 
 
     elif(op == '3'):
-        print("sessoes existentes:")
+        print("sessoes finalizadas:")
         client.send_msg("", "F")
         ses = client.recv_packet().split()
         for j in range(len(ses)):
-            print(ses[j])    
-        sessao = input("qual sessao voce deseja saber o resultado?\n")
+            client.send_msg(ses[j],"F")
+            ress = client.recv_packet()
+            if(ress[0:9] == "vencedor "):
+                print(ses[j])    
+        # sessao = input("qual sessao voce deseja saber o resultado?\n")
+        print("qual sessao voce deseja saber o resultado?")
+        sessao = pegases(ses)
         client.send_msg(sessao, "F")
         res = client.recv_packet()
         if(res[0:9] == "vencedor "):
             print("\n" + res,"\n")
         else:
+            print(res)
             print("sessao ainda em andamento ou nao existente\n")
 
     else:
@@ -89,26 +125,3 @@ while(op != '0'):
 
 
     op = input("digite 1 para criar uma sessao de votacao\n2 para votar em uma sessao ja existente\n3 para checar seu resultado\nou digite 0 para sair\n")
-
-
-
-
-
-
-# client.send_msg("MelhorCampanho 3 jose arnaldo fernando", "C")
-# print(client.recv_packet())
-# client.send_msg("", "F")
-# print(client.recv_packet())
-# client.send_msg("MelhorCampanho", "F")
-# print(client.recv_packet())
-# client.send_msg("MelhorCampanho jose", "V")
-# print(client.recv_packet())
-# client.send_msg("MelhorCampanho jose", "V")
-# print(client.recv_packet())
-# client.send_msg("MelhorCampanho jose", "V")
-# print(client.recv_packet())
-# client.send_msg("MelhorCampanho", "F")
-# print(client.recv_packet())
-# while True:
-#     pass
-#client.connection.close()
